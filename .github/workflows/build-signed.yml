@@ -38,22 +38,21 @@ jobs:
 
     - name: Sign & Move APK
       run: |
-        cd platforms/android/app/build/outputs/apk/release/
-        
         # Keystore জেনারেট করা
         keytool -genkeypair -v -keystore auto-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias taka_counter_key -dname "CN=TakaCounter, OU=App, O=Dev, L=Dhaka, C=BD" -storepass 123456 -keypass 123456
         
-        # Build Tools পাথ সেট করা
+        # জেনারেট হওয়া Unsigned APK ফাইলটি স্বয়ংক্রিয়ভাবে খুঁজে বের করা
+        UNSIGNED_APK=$(find . -name "*release-unsigned.apk" -o -name "*release*.apk" | head -n 1)
+        echo "Found APK at: $UNSIGNED_APK"
+        
+        # Build Tools পাথ ফিক্স করা
         BUILD_TOOLS_PATH=$(ls -d $ANDROID_HOME/build-tools/* | tail -n 1)
         
         # ZipAlign করা
-        $BUILD_TOOLS_PATH/zipalign -v -p 4 app-release-unsigned.apk taka-counter-aligned.apk
+        $BUILD_TOOLS_PATH/zipalign -v -p 4 "$UNSIGNED_APK" taka-counter-aligned.apk
         
         # Keystore দিয়ে সাইন করা
         $BUILD_TOOLS_PATH/apksigner sign --ks auto-release-key.jks --ks-pass pass:123456 --out taka-counter-signed.apk taka-counter-aligned.apk
-        
-        # তৈরি হওয়া সাইনড ফাইলটি প্রজেক্টের মূল ফোল্ডারে কপি করে নিয়ে আসা
-        cp taka-counter-signed.apk $GITHUB_WORKSPACE/taka-counter-signed.apk
 
     - name: Upload Signed APK File
       uses: actions/upload-artifact@v4
