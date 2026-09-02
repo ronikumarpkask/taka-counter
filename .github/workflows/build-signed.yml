@@ -41,17 +41,15 @@ jobs:
         # Keystore জেনারেট করা
         keytool -genkeypair -v -keystore auto-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias taka_counter_key -dname "CN=TakaCounter, OU=App, O=Dev, L=Dhaka, C=BD" -storepass 123456 -keypass 123456
         
-        # জেনারেট হওয়া Unsigned APK ফাইলটি স্বয়ংক্রিয়ভাবে খুঁজে বের করা
-        UNSIGNED_APK=$(find . -name "*release-unsigned.apk" -o -name "*release*.apk" | head -n 1)
+        # Cordova output পাথ থেকে ফাইল নেওয়া
+        UNSIGNED_APK=$(find platforms/android/ -name "*.apk" | head -n 1)
         echo "Found APK at: $UNSIGNED_APK"
         
-        # Build Tools পাথ ফিক্স করা
+        # Build Tools পাথ সেট করা
         BUILD_TOOLS_PATH=$(ls -d $ANDROID_HOME/build-tools/* | tail -n 1)
         
-        # ZipAlign করা
+        # ZipAlign ও Sign করা
         $BUILD_TOOLS_PATH/zipalign -v -p 4 "$UNSIGNED_APK" taka-counter-aligned.apk
-        
-        # Keystore দিয়ে সাইন করা
         $BUILD_TOOLS_PATH/apksigner sign --ks auto-release-key.jks --ks-pass pass:123456 --out taka-counter-signed.apk taka-counter-aligned.apk
 
     - name: Upload Signed APK File
