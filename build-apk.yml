@@ -1,0 +1,38 @@
+name: Build Taka Counter APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+        working-directory: ./taka-counter-android
+
+      - name: Build APK
+        run: ./gradlew assembleDebug
+        working-directory: ./taka-counter-android
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Taka-Counter-APK
+          path: taka-counter-android/app/build/outputs/apk/debug/*.apk
