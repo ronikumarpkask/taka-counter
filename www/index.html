@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>টাকা গণনা — নোট হিসাব খাতা</title>
+<style>
+  :root{
+    --ink:#2b2118;
+    --cover:#173d31;
+    --cover-2:#0f2b23;
+    --brass:#b6862c;
+    --paper:#efe7d4;
+    --paper-line:#d9cdae;
+    --paper-2:#f7f2e4;
+    --danger:#8a3324;
+    --ok:#1f5c3e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cover-2);
+    color:var(--ink);
+    font-family: "Iowan Old Style","Noto Serif Bengali","Georgia",serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:18px 12px 40px;
+  }
+  .book{
+    width:100%;
+    max-width:460px;
+  }
+  .cover{
+    background:linear-gradient(180deg,var(--cover),var(--cover-2));
+    border-radius:14px 14px 0 0;
+    padding:22px 20px 26px;
+    color:var(--paper-2);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset;
+  }
+  .cover .eyebrow{
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:12.5px;
+    letter-spacing:0.02em;
+    color:var(--brass);
+    margin:0 0 4px;
+  }
+  .cover h1{
+    margin:0;
+    font-size:26px;
+    font-weight:600;
+    line-height:1.25;
+  }
+  .totalRow{
+    margin-top:16px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-top:1px solid rgba(255,255,255,0.18);
+    padding-top:14px;
+  }
+  .totalRow .label{
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:13px;
+    color:rgba(255,255,255,0.75);
+  }
+  .totalRow .amount{
+    font-size:32px;
+    font-weight:700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing:0.01em;
+  }
+  .totalRow .amount .sign{
+    color:var(--brass);
+    margin-right:2px;
+  }
+  .noteCountLine{
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:12px;
+    color:rgba(255,255,255,0.6);
+    margin-top:4px;
+  }
+
+  .ledger{
+    background:var(--paper);
+    padding:6px 14px 4px;
+  }
+  .row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 0;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .row:last-child{border-bottom:none;}
+  .swatch{
+    width:34px;
+    height:22px;
+    border-radius:3px;
+    flex:0 0 auto;
+    position:relative;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+  }
+  .swatch::after{
+    content:"";
+    position:absolute;
+    inset:3px;
+    border:1px dashed rgba(255,255,255,0.55);
+    border-radius:2px;
+  }
+  .noteLabel{
+    font-size:16px;
+    font-weight:600;
+    width:58px;
+    flex:0 0 auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .stepper{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex:1 1 auto;
+    justify-content:center;
+  }
+  .stepBtn{
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    border:1px solid var(--paper-line);
+    background:var(--paper-2);
+    color:var(--ink);
+    font-size:16px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    user-select:none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .stepBtn:active{ background:var(--paper-line); }
+  .countInput{
+    width:48px;
+    text-align:center;
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:16px;
+    font-variant-numeric: tabular-nums;
+    border:none;
+    border-bottom:1px solid var(--paper-line);
+    background:transparent;
+    color:var(--ink);
+    padding:4px 0;
+  }
+  .countInput:focus{ outline:none; border-bottom:1px solid var(--brass); }
+  .subtotal{
+    width:88px;
+    flex:0 0 auto;
+    text-align:right;
+    font-size:15px;
+    font-variant-numeric: tabular-nums;
+    color:#5a4d3a;
+  }
+
+  .bundleBar{
+    background:var(--paper);
+    padding:4px 18px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .bundleBar .currentLine{
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:13.5px;
+    color:#6b5d45;
+  }
+  .bundleBar .currentLine .amt{
+    font-family: "Iowan Old Style","Noto Serif Bengali","Georgia",serif;
+    font-size:17px;
+    font-weight:700;
+    color:var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .saveBtn{
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:13px;
+    color:var(--paper-2);
+    background:var(--cover);
+    border:none;
+    border-radius:20px;
+    padding:9px 16px;
+    cursor:pointer;
+    white-space:nowrap;
+    flex:0 0 auto;
+  }
+  .saveBtn:active{ background:var(--cover-2); }
+
+  .bundles{
+    background:var(--paper-2);
+    padding:2px 18px 4px;
+    border-top:1px solid var(--paper-line);
+  }
+  .bundles.empty{ display:none; }
+  .bundles .heading{
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:13px;
+    color:#6b5d45;
+    margin:14px 0 6px;
+  }
+  .bundleRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:9px 0;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .bundleRow:last-of-type{ border-bottom:none; }
+  .bundleRow .name{
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:13.5px;
+    color:#6b5d45;
+  }
+  .bundleRow .amt{
+    font-size:15.5px;
+    font-weight:600;
+    font-variant-numeric: tabular-nums;
+    flex:1;
+    text-align:right;
+    margin-right:6px;
+  }
+  .bundleRemove{
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    border:1px solid var(--paper-line);
+    background:transparent;
+    color:#8a3324;
+    font-size:13px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    flex:0 0 auto;
+  }
+  .bundlesTotalLine{
+    display:flex;
+    justify-content:space-between;
+    padding:10px 0 14px;
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:13.5px;
+    color:#6b5d45;
+    border-top:1px dashed var(--paper-line);
+    margin-top:2px;
+  }
+  .bundlesTotalLine .amt{
+    font-family: "Iowan Old Style","Noto Serif Bengali","Georgia",serif;
+    font-weight:700;
+    color:var(--ink);
+    font-size:15.5px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .due{
+    background:var(--paper-2);
+    padding:16px 18px 18px;
+    border-top:1px solid var(--paper-line);
+  }
+  .due .heading{
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:13px;
+    color:#6b5d45;
+    margin:0 0 8px;
+  }
+  .dueRow{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .dueRow input{
+    flex:1;
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:16px;
+    padding:9px 10px;
+    border:1px solid var(--paper-line);
+    border-radius:6px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .dueRow input:focus{ outline:none; border-color:var(--brass); }
+
+  .result{
+    margin-top:12px;
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:15px;
+    padding:12px 14px;
+    border-radius:8px;
+    display:none;
+  }
+  .result.show{ display:block; }
+  .result.ok{ background:#e4efe6; color:var(--ok); }
+  .result.change{ background:#fdf1e0; color:#7a5414; }
+  .result.short{ background:#f6e3df; color:var(--danger); }
+
+  .footer{
+    background:var(--cover-2);
+    border-radius:0 0 14px 14px;
+    padding:14px 18px;
+    display:flex;
+    justify-content:flex-end;
+  }
+  .resetBtn{
+    font-family:"Noto Sans Bengali","Segoe UI",sans-serif;
+    font-size:13px;
+    color:rgba(255,255,255,0.75);
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.3);
+    border-radius:20px;
+    padding:7px 16px;
+    cursor:pointer;
+  }
+  .resetBtn:active{ background:rgba(255,255,255,0.1); }
+
+  @media (max-width:380px){
+    .noteLabel{ width:48px; font-size:15px; }
+    .subtotal{ width:74px; font-size:13.5px; }
+    .stepper{ gap:4px; }
+    .bundleBar{ flex-direction:column; align-items:stretch; }
+    .saveBtn{ width:100%; }
+  }
+</style>
+</head>
+<body>
+<div class="book">
+
+  <div class="cover">
+    <p class="eyebrow">নোট হিসাব খাতা</p>
+    <h1>টাকা গণনা</h1>
+    <div class="totalRow">
+      <span class="label">সর্বমোট টাকা</span>
+      <span class="amount"><span class="sign">৳</span><span id="grandTotal">০</span></span>
+    </div>
+    <div class="noteCountLine" id="noteCountLine">০টি নোট</div>
+  </div>
+
+  <div class="ledger" id="ledger"></div>
+
+  <div class="bundleBar">
+    <div class="currentLine">চলতি বান্ডিল <span class="amt">৳<span id="currentTotal">০</span></span></div>
+    <button class="saveBtn" id="saveBundleBtn">বান্ডিল সেভ করে নতুন শুরু করুন</button>
+  </div>
+
+  <div class="bundles empty" id="bundlesSection">
+    <p class="heading">সংরক্ষিত বান্ডিল</p>
+    <div id="bundlesList"></div>
+    <div class="bundlesTotalLine">
+      <span>বান্ডিলগুলোর মোট</span>
+      <span class="amt">৳<span id="bundlesTotal">০</span></span>
+    </div>
+  </div>
+
+  <div class="due">
+    <p class="heading">প্রাপ্য টাকা — সর্বমোট (সব বান্ডিল + চলতি) এর সাথে মিলিয়ে দেখতে লিখুন</p>
+    <div class="dueRow">
+      <span style="font-size:16px;color:#6b5d45;">৳</span>
+      <input type="number" inputmode="numeric" id="dueAmount" placeholder="যেমন ১০০০০">
+    </div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <div class="footer">
+    <button class="resetBtn" id="resetBtn">সব মুছুন</button>
+  </div>
+
+</div>
+
+<script>
+  const denominations = [1000, 500, 200, 100, 50, 20, 10, 5];
+  const swatchColors = {
+    1000: "#8f8fa8",
+    500:  "#2f6b4f",
+    200:  "#8a6d3b",
+    100:  "#2e7d6b",
+    50:   "#7c4a8c",
+    20:   "#c9702e",
+    10:   "#8b4b3b",
+    5:    "#4c8c4a"
+  };
+
+  const counts = {};
+  denominations.forEach(d => counts[d] = 0);
+
+  let bundles = []; // { id, total }
+  let nextBundleId = 1;
+
+  const bnFormatter = new Intl.NumberFormat('bn-BD');
+  const toBn = (n) => bnFormatter.format(n);
+
+  const ledger = document.getElementById('ledger');
+
+  denominations.forEach(d => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <div class="swatch" style="background:${swatchColors[d]}"></div>
+      <div class="noteLabel">৳${toBn(d)}</div>
+      <div class="stepper">
+        <button class="stepBtn" data-action="dec" data-note="${d}" aria-label="কমান">−</button>
+        <input class="countInput" type="number" inputmode="numeric" min="0" value="0" data-note="${d}">
+        <button class="stepBtn" data-action="inc" data-note="${d}" aria-label="বাড়ান">+</button>
+      </div>
+      <div class="subtotal" id="sub-${d}">৳০</div>
+    `;
+    ledger.appendChild(row);
+  });
+
+  function bundlesSum(){
+    return bundles.reduce((sum, b) => sum + b.total, 0);
+  }
+
+  function renderBundles(){
+    const section = document.getElementById('bundlesSection');
+    const list = document.getElementById('bundlesList');
+    if(bundles.length === 0){
+      section.classList.add('empty');
+      list.innerHTML = '';
+      return;
+    }
+    section.classList.remove('empty');
+    list.innerHTML = bundles.map((b, i) => `
+      <div class="bundleRow">
+        <span class="name">বান্ডিল ${toBn(i+1)}</span>
+        <span class="amt">৳${toBn(b.total)}</span>
+        <button class="bundleRemove" data-id="${b.id}" aria-label="মুছুন">✕</button>
+      </div>
+    `).join('');
+    document.getElementById('bundlesTotal').textContent = toBn(bundlesSum());
+  }
+
+  function recalc(){
+    let currentTotal = 0;
+    let noteCount = 0;
+    denominations.forEach(d => {
+      const c = counts[d] || 0;
+      currentTotal += c * d;
+      noteCount += c;
+      document.getElementById(`sub-${d}`).textContent = `৳${toBn(c*d)}`;
+    });
+    document.getElementById('currentTotal').textContent = toBn(currentTotal);
+    document.getElementById('noteCountLine').textContent = `${toBn(noteCount)}টি নোট এই বান্ডিলে`;
+
+    const grand = currentTotal + bundlesSum();
+    document.getElementById('grandTotal').textContent = toBn(grand);
+
+    updateDueResult(grand);
+    return { currentTotal, grand };
+  }
+
+  function updateDueResult(total){
+    const dueInput = document.getElementById('dueAmount');
+    const resultEl = document.getElementById('result');
+    const raw = dueInput.value.trim();
+    if(raw === ''){
+      resultEl.className = 'result';
+      resultEl.textContent = '';
+      return;
+    }
+    const due = Number(raw);
+    if(isNaN(due)){
+      resultEl.className = 'result';
+      resultEl.textContent = '';
+      return;
+    }
+    const diff = total - due;
+    resultEl.classList.add('show');
+    if(diff === 0){
+      resultEl.className = 'result show ok';
+      resultEl.textContent = `মিলে গেছে — ঠিক ৳${toBn(due)}`;
+    } else if(diff > 0){
+      resultEl.className = 'result show change';
+      resultEl.textContent = `গ্রাহককে ফেরত দিন ৳${toBn(diff)}`;
+    } else {
+      resultEl.className = 'result show short';
+      resultEl.textContent = `কম আছে ৳${toBn(Math.abs(diff))}`;
+    }
+  }
+
+  ledger.addEventListener('click', (e) => {
+    const btn = e.target.closest('.stepBtn');
+    if(!btn) return;
+    const note = Number(btn.dataset.note);
+    const action = btn.dataset.action;
+    if(action === 'inc') counts[note] = (counts[note] || 0) + 1;
+    if(action === 'dec') counts[note] = Math.max(0, (counts[note] || 0) - 1);
+    document.querySelector(`.countInput[data-note="${note}"]`).value = counts[note];
+    recalc();
+  });
+
+  ledger.addEventListener('input', (e) => {
+    if(!e.target.classList.contains('countInput')) return;
+    const note = Number(e.target.dataset.note);
+    let val = parseInt(e.target.value, 10);
+    if(isNaN(val) || val < 0) val = 0;
+    counts[note] = val;
+    recalc();
+  });
+
+  document.getElementById('dueAmount').addEventListener('input', () => recalc());
+
+  function clearCurrentBundle(){
+    denominations.forEach(d => {
+      counts[d] = 0;
+      document.querySelector(`.countInput[data-note="${d}"]`).value = 0;
+    });
+  }
+
+  document.getElementById('saveBundleBtn').addEventListener('click', () => {
+    const { currentTotal } = recalc();
+    if(currentTotal === 0) return;
+    bundles.push({ id: nextBundleId++, total: currentTotal });
+    clearCurrentBundle();
+    renderBundles();
+    recalc();
+  });
+
+  document.getElementById('bundlesList').addEventListener('click', (e) => {
+    const btn = e.target.closest('.bundleRemove');
+    if(!btn) return;
+    const id = Number(btn.dataset.id);
+    bundles = bundles.filter(b => b.id !== id);
+    renderBundles();
+    recalc();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    clearCurrentBundle();
+    bundles = [];
+    nextBundleId = 1;
+    document.getElementById('dueAmount').value = '';
+    renderBundles();
+    recalc();
+  });
+
+  renderBundles();
+  recalc();
+</script>
+</body>
+</html>
