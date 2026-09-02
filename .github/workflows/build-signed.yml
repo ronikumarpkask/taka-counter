@@ -33,19 +33,19 @@ jobs:
     - name: Prepare Cordova Android Platform
       run: cordova platform add android || true
 
-    - name: Build Unsigned Release APK
-      run: cordova build android --release
+    - name: Build Android APK
+      run: cordova build android
 
-    - name: Sign & Move APK
+    - name: Sign & Prepare APK
       run: |
         # Keystore জেনারেট করা
         keytool -genkeypair -v -keystore auto-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias taka_counter_key -dname "CN=TakaCounter, OU=App, O=Dev, L=Dhaka, C=BD" -storepass 123456 -keypass 123456
         
-        # Cordova output পাথ থেকে ফাইল নেওয়া
-        UNSIGNED_APK=$(find platforms/android/ -name "*.apk" | head -n 1)
+        # যেকোনো তৈরি হওয়া APK খুঁজে বের করা
+        UNSIGNED_APK=$(find . -name "*.apk" | head -n 1)
         echo "Found APK at: $UNSIGNED_APK"
         
-        # Build Tools পাথ সেট করা
+        # Build Tools পাথ ফিক্স
         BUILD_TOOLS_PATH=$(ls -d $ANDROID_HOME/build-tools/* | tail -n 1)
         
         # ZipAlign ও Sign করা
